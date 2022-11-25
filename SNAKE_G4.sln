@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNAKE_G4", "SNAKE_G4\SNAKE_G4.csproj", "{8D6002FE-AF43-4C6C-9B9A-A42E8A47BB90}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D6002FE-AF43-4C6C-9B9A-A42E8A47BB90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D6002FE-AF43-4C6C-9B9A-A42E8A47BB90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D6002FE-AF43-4C6C-9B9A-A42E8A47BB90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D6002FE-AF43-4C6C-9B9A-A42E8A47BB90}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB85AA84-5209-4F91-A515-923B977021B3}
+	EndGlobalSection
+EndGlobal
