@@ -1,5 +1,4 @@
 # SNAKE_G4
-# todolist_CC
 
 - [x] task 1
 - [x] task 2
