@@ -8,10 +8,11 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
-        var tickRate = TimeSpan.FromMilliseconds(100);
+        var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
+                                                       //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
 
-        using (var cts = new CancellationTokenSource())
+        using (var cts = new CancellationTokenSource()) //metod för keypress.
         {
             async Task MonitorKeyPresses()
             {
@@ -20,17 +21,17 @@ public static class Program
                     if (Console.KeyAvailable)
                     {
                         var key = Console.ReadKey(intercept: true).Key;
-                        snakeGame.OnKeyPress(key);
+                        snakeGame.OnKeyPress(key); //läser av vilken knapp som tryckts
                     }
-                    await Task.Delay(10);
+                    await Task.Delay(1); //Gör tasken efter X millisekunder
                 }
             }
-            var monitorKeyPresses = MonitorKeyPresses();
+            var monitorKeyPresses = MonitorKeyPresses(); //om en knapp trycks
             do
             {
-                snakeGame.OnGameTick();
-                snakeGame.Render();
-                await Task.Delay(tickRate);
+                snakeGame.OnGameTick(); //anropar metod som körs varje gång spelet uppdateras (görs 
+                snakeGame.Render(); //skapar storleken på ormen ovh äpplet
+                await Task.Delay(tickRate); //denna do-loop körs efter 100ms
             } while (!snakeGame.GameOver);
 
             // Allow time for user to weep before application exits.
@@ -46,18 +47,18 @@ public static class Program
         }
     }
 }
-enum Direction
+enum Direction //enum directions
 {
     Up,
     Down,
     Left,
     Right
 }
-interface IRenderable
+interface IRenderable 
 {
     void Render();
 }
-readonly struct Position
+readonly struct Position //poistion
 {
     public Position(int top, int left)
     {
@@ -66,8 +67,8 @@ readonly struct Position
     }
     public int Top { get; }
     public int Left { get; }
-    public Position RightBy(int n) => new Position(Top, Left + n);
-    public Position DownBy(int n) => new Position(Top + n, Left);
+    public Position RightBy(int n) => new Position(Top, Left + n); //körs sidleds
+    public Position DownBy(int n) => new Position(Top + n, Left); //körs vertikalt
 }
 class Apple : IRenderable
 {
@@ -76,44 +77,44 @@ class Apple : IRenderable
         Position = position;
     }
     public Position Position { get; }
-    public void Render()
+    public void Render() //renderar äpplet
     {
         Console.SetCursorPosition(Position.Left, Position.Top);
-        Console.Write("🍏");
+        Console.Write("A"); //äpplet ser ut som ett A
     }
 }
 class Snake : IRenderable
 {
-    private List<Position> _body;
+    private List<Position> _body; //
     private int _growthSpurtsRemaining;
-    public Snake(Position spawnLocation, int initialSize = 1)
+    public Snake(Position spawnLocation, int initialSize = 1) //spawnar ormen på plats spawnLocation med storlek 1
     {
         _body = new List<Position> { spawnLocation };
-        _growthSpurtsRemaining = Math.Max(0, initialSize - 1);
-        Dead = false;
+        _growthSpurtsRemaining = Math.Max(0, initialSize - 1); //hur stor ormen är
+        Dead = false; //ormen är inte död
     }
     public bool Dead { get; private set; }
-    public Position Head => _body.First();
+    public Position Head => _body.First(); //sätter huvudet först
     private IEnumerable<Position> Body => _body.Skip(1);
-    public void Move(Direction direction)
+    public void Move(Direction direction) //metod för att röra sig
     {
         if (Dead) throw new InvalidOperationException();
         Position newHead;
         switch (direction)
         {
             case Direction.Up:
-                newHead = Head.DownBy(-1);
+                newHead = Head.DownBy(-1); //om upp så rör sig den downby-1 dvs upp
                 break;
 
-            case Direction.Left:
+            case Direction.Left://om left så rör den sig rightby -1 dvs left
                 newHead = Head.RightBy(-1);
                 break;
 
-            case Direction.Down:
+            case Direction.Down: //om down så rör den sig downby 1 dvs down
                 newHead = Head.DownBy(1);
                 break;
 
-            case Direction.Right:
+            case Direction.Right: //om right så rör den sig rightby1 dvs right
                 newHead = Head.RightBy(1);
                 break;
 
@@ -135,60 +136,61 @@ class Snake : IRenderable
             _body.RemoveAt(_body.Count - 1);
         }
     }
-    public void Grow()
+    public void Grow() //metod så ormen växer
     {
         if (Dead) throw new InvalidOperationException();
 
         _growthSpurtsRemaining++;
     }
-    public void Render()
+    public void Render() //metod för att visa ormen
     {
         Console.SetCursorPosition(Head.Left, Head.Top);
-        Console.Write("◉");
+        Console.Write("@");//huvudet
+  
 
-        foreach (var position in Body)
+        foreach (var position in Body) //kroppen
         {
             Console.SetCursorPosition(position.Left, position.Top);
-            Console.Write("■");
+            Console.Write("#");
         }
     }
     private static bool PositionIsValid(Position position) =>
-        position.Top >= 0 && position.Left >= 0;
+        position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth;
 }
 class SnakeGame : IRenderable
 {
-    private static readonly Position Origin = new Position(0, 0);
-    private Direction _currentDirection;
-    private Direction _nextDirection;
-    private Snake _snake;
-    private Apple _apple;
+    private static readonly Position Origin = new Position(0, 0); //plats där ormen startar
+    private Direction _currentDirection; //rör sig åt ett hål initiexlt
+    private Direction _nextDirection; //
+    private Snake _snake; //skapar ormen
+    private Apple _apple; //skapar ett äpple
     public SnakeGame()
     {
-        _snake = new Snake(Origin, initialSize: 5);
-        _apple = CreateApple();
-        _currentDirection = Direction.Right;
-        _nextDirection = Direction.Right;
+        _snake = new Snake(Origin, initialSize: 5); //startplats och storlek
+        _apple = CreateApple(); //skapar ett äpple
+        _currentDirection = Direction.Right; //fyller ingen funktion när spelet startar
+        _nextDirection = Direction.Right; //startriktning
     }
-    public bool GameOver => _snake.Dead;
-    public void OnKeyPress(ConsoleKey key)
+    public bool GameOver => _snake.Dead; //om game over så snake död 
+    public void OnKeyPress(ConsoleKey key) //metod som registrerar och sätter direktions
     {
         Direction newDirection;
 
         switch (key)
         {
-            case ConsoleKey.W:
+            case ConsoleKey.UpArrow:
                 newDirection = Direction.Up;
                 break;
 
-            case ConsoleKey.A:
+            case ConsoleKey.LeftArrow:
                 newDirection = Direction.Left;
                 break;
 
-            case ConsoleKey.S:
+            case ConsoleKey.DownArrow:
                 newDirection = Direction.Down;
                 break;
 
-            case ConsoleKey.D:
+            case ConsoleKey.RightArrow:
                 newDirection = Direction.Right;
                 break;
 
@@ -202,7 +204,7 @@ class SnakeGame : IRenderable
         }
         _nextDirection = newDirection;
     }
-    public void OnGameTick()
+    public void OnGameTick() //Detta händer varje tick
     {
         if (GameOver) throw new InvalidOperationException();
 
@@ -217,7 +219,7 @@ class SnakeGame : IRenderable
             _apple = CreateApple();
         }
     }
-    public void Render()
+    public void Render() //detta renderas
     {
         Console.Clear();
         _snake.Render();
@@ -235,11 +237,12 @@ class SnakeGame : IRenderable
             default: throw new ArgumentOutOfRangeException();
         }
     }
-    private static Apple CreateApple()
+    private static Apple CreateApple() //skapar ett äpple
     {
         // Can be factored elsewhere.
-        const int numberOfRows = 20;
-        const int numberOfColumns = 20;
+        int nrRow = Console.WindowHeight;
+        int numberOfRows = Console.WindowHeight;
+        int numberOfColumns = Console.WindowWidth;
 
         var random = new Random();
         var top = random.Next(0, numberOfRows + 1);
