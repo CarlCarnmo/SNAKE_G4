@@ -258,7 +258,6 @@ class SnakeGame : IRenderable
         // Can be factored elsewhere.
         int numberOfRows = Console.WindowHeight;
         int numberOfColumns = Console.WindowWidth;
-
         var random = new Random();
         var top = random.Next(0, numberOfRows + 1);
         var left = random.Next(0, numberOfColumns + 1);
