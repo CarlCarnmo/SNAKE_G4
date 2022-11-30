@@ -109,7 +109,7 @@ public static class Program
                 Environment.Exit(0);
             }
         }
-        while (number != "3");
+        while (number != "2");
     }
 }
 enum Direction //enum directions
