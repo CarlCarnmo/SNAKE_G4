@@ -1,15 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 public static class Program
 {
+    public static bool hasWalls = false;
     public static async Task Main(string[] args)
     {
+        Console.WriteLine("Vill du köra med eller utan väggar? y/n");
+        string walls = Console.ReadLine();
+        if (walls == "y")
+            hasWalls = true;
+        Console.WriteLine("Vilken storlek vill du ha på spelet?\n(s)mall\n(m)edium\n(l)arge");
+        Console.Write(">");
+        string command = Console.ReadLine().ToLower();
+        if (command == "s")
+        {
+            Console.SetWindowSize(50, 10);
+            if (hasWalls)
+            Console.SetBufferSize(50, 10);
+        }
+        else if (command == "m")
+        {
+            Console.SetWindowSize(100, 20);
+            if (hasWalls)
+            Console.SetBufferSize(100, 20);
+        }
+        else if (command == "l")
+        {
+            Console.SetWindowSize(150, 30);
+            if (hasWalls)
+            Console.SetBufferSize(150, 30);
+        }
         var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
-                                                       //rör sig snabbare/långsammare
+                                                      //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
 
         using (var cts = new CancellationTokenSource()) //metod för keypress.
@@ -54,7 +81,7 @@ enum Direction //enum directions
     Left,
     Right
 }
-interface IRenderable 
+interface IRenderable
 {
     void Render();
 }
@@ -85,7 +112,7 @@ class Apple : IRenderable
 }
 class Snake : IRenderable
 {
-    private List<Position> _body; //
+    public static List<Position> _body; //
     private int _growthSpurtsRemaining;
     public Snake(Position spawnLocation, int initialSize = 1) //spawnar ormen på plats spawnLocation med storlek 1
     {
@@ -121,10 +148,21 @@ class Snake : IRenderable
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        if (_body.Contains(newHead) || !PositionIsValid(newHead))
+        if (Program.hasWalls == true)
         {
-            Dead = true;
-            return;
+            if (_body.Contains(newHead) || !PositionIsValid(newHead))
+            {
+                Dead = true;
+                return;
+            }
+        }
+        else if (Program.hasWalls == false)
+        {
+            if (_body.Contains(newHead) || !PositionIsValid2(newHead))
+            {
+                Dead = true;
+                return;
+            }
         }
         _body.Insert(0, newHead);
         if (_growthSpurtsRemaining > 0)
@@ -146,7 +184,7 @@ class Snake : IRenderable
     {
         Console.SetCursorPosition(Head.Left, Head.Top);
         Console.Write("@");//huvudet
-  
+
 
         foreach (var position in Body) //kroppen
         {
@@ -154,12 +192,14 @@ class Snake : IRenderable
             Console.Write("#");
         }
     }
-    private static bool PositionIsValid(Position position) =>
-        position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth;
+    private static bool PositionIsValid(Position position) => 
+        position.Top >= 1 && position.Top < Console.WindowHeight - 1 && position.Left >= 1 && position.Left < Console.WindowWidth - 1; //Ändrat så ormen dör när den åker in en vägg
+    private static bool PositionIsValid2(Position position) =>
+      position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth; //Ändrat så ormen dör när den åker in en vägg
 }
 class SnakeGame : IRenderable
 {
-    private static readonly Position Origin = new Position(0, 0); //plats där ormen startar
+    private static readonly Position Origin = new Position(Console.WindowHeight / 2, Console.WindowWidth / 2); //plats där ormen startar
     private Direction _currentDirection; //rör sig åt ett hål initiexlt
     private Direction _nextDirection; //
     private Snake _snake; //skapar ormen
@@ -222,6 +262,23 @@ class SnakeGame : IRenderable
     public void Render() //detta renderas
     {
         Console.Clear();
+        // Lagt till väggar
+        if (Program.hasWalls == true)
+        {
+            string lines = "";
+            for (int i = 0; i < Console.WindowWidth; i++)
+            {
+                Console.Write("-");
+            }
+            for (int i = 2; i < Console.WindowHeight; i++)
+            {
+                Console.WriteLine($"|{lines.PadRight(Console.WindowWidth - 2, ' ')}|");
+            }
+            for (int i = Console.WindowHeight; i < Console.WindowWidth + Console.WindowHeight; i++)
+            {
+                Console.Write("-");
+            }
+        }
         _snake.Render();
         _apple.Render();
         Console.SetCursorPosition(0, 0);
@@ -243,13 +300,13 @@ class SnakeGame : IRenderable
         int nrRow = Console.WindowHeight;
         int numberOfRows = Console.WindowHeight;
         int numberOfColumns = Console.WindowWidth;
-
         var random = new Random();
-        var top = random.Next(0, numberOfRows + 1);
-        var left = random.Next(0, numberOfColumns + 1);
+        var top = random.Next(1, numberOfRows - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
+        var left = random.Next(1, numberOfColumns - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
         var position = new Position(top, left);
         var apple = new Apple(position);
-
         return apple;
+
+
     }
 }
