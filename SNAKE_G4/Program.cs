@@ -101,7 +101,7 @@ public static class Program
             }
             else if (number == "2")
             {
-                Console.WriteLine("S,M,L");    
+                Console.WriteLine("S,M,L");
                 Console.ReadKey();
             }
             else if (number == "3")
@@ -162,7 +162,7 @@ class Snake : IRenderable
     {
         _body = new List<Position> { spawnLocation };
         _growthSpurtsRemaining = Math.Max(0, initialSize - 1); //Snake size
-        Dead = false; //ormen är inte död
+        Dead = false;
     }
     public bool Dead { get; private set; }
     public Position Head => _body.First();
