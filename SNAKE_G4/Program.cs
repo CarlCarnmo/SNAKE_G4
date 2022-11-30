@@ -92,8 +92,7 @@ public static class Program
             Console.WriteLine("|  Menyn:                                           |");
             Console.WriteLine("|  Välja siffra nedan för att komma vidare i spelet |");
             Console.WriteLine("|  1. Starta spelet                                 |");
-            Console.WriteLine("|  2. Välj storlek på förstret                      |");
-            Console.WriteLine("|  3. Avsluta Snake                                 |");
+            Console.WriteLine("|  2. Avsluta Snake                                 |");
             Console.WriteLine("-----------------------------------------------------");
             Console.Write("> "); 
             number = Console.ReadLine();
