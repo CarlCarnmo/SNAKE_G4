@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-public static class Program
+﻿public static class Program
 {
     public static async Task Main(string[] args)
     {
+        Runmenu();
         var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
-                                                       //rör sig snabbare/långsammare
+                                                      //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
 
         using (var cts = new CancellationTokenSource()) //metod för keypress.
@@ -46,6 +41,42 @@ public static class Program
             await monitorKeyPresses;
         }
     }
+    
+    public static void Runmenu()
+    {
+        string number;
+        do
+        {
+            Console.Clear();
+            Console.WriteLine("-----------------------------------------------------");
+            Console.WriteLine("|  Menyn:                                           |");
+            Console.WriteLine("|  Välja siffra nedan för att komma vidare i spelet |");
+            Console.WriteLine("|  1. Starta spelet                                 |");
+            Console.WriteLine("|  2. Välj storlek på förstret                      |");
+            Console.WriteLine("|  3. Avsluta Snake                                 |");
+            Console.WriteLine("-----------------------------------------------------");
+            Console.Write("> "); 
+            number = Console.ReadLine();
+            if (number == "1")
+            {
+                Console.Clear();
+                Console.WriteLine("För att avsluta pågående spel, tryck Escape");
+                Console.ReadKey();
+                return;
+            }
+            else if (number == "2")
+            {
+                Console.WriteLine("S,M,L");    
+                Console.ReadKey();
+            }
+            else if (number == "3")
+            {
+                Console.WriteLine("Välkommen åter");
+                Environment.Exit(0);
+            }
+        }
+        while (number != "3");
+    }
 }
 enum Direction //enum directions
 {
@@ -54,7 +85,7 @@ enum Direction //enum directions
     Left,
     Right
 }
-interface IRenderable 
+interface IRenderable
 {
     void Render();
 }
@@ -118,6 +149,8 @@ class Snake : IRenderable
                 newHead = Head.RightBy(1);
                 break;
 
+
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -146,7 +179,7 @@ class Snake : IRenderable
     {
         Console.SetCursorPosition(Head.Left, Head.Top);
         Console.Write("@");//huvudet
-  
+
 
         foreach (var position in Body) //kroppen
         {
@@ -192,6 +225,12 @@ class SnakeGame : IRenderable
 
             case ConsoleKey.RightArrow:
                 newDirection = Direction.Right;
+                break;
+
+            case ConsoleKey.Escape:
+                newDirection = Direction.Right;    //Denna rad behövdes för kompileringen. Ormen ska inte svänga höger vid Escape
+                Console.Clear();
+                Environment.Exit(0);
                 break;
 
             default:
