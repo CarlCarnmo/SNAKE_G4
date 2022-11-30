@@ -1,13 +1,47 @@
-﻿public static class Program
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
+
+public static class Program
 {
+    public static bool hasWalls = false;
     public static async Task Main(string[] args)
     {
-        Runmenu();
+        Console.WriteLine("Vill du köra med eller utan väggar? y/n");
+        string walls = Console.ReadLine();
+        if (walls == "y")
+            hasWalls = true;
+        Console.WriteLine("Vilken storlek vill du ha på spelet?\n(s)mall\n(m)edium\n(l)arge");
+        Console.Write(">");
+        string command = Console.ReadLine().ToLower();
+        if (command == "s")
+        {
+            Console.SetWindowSize(50, 10);
+            if (hasWalls)
+            Console.SetBufferSize(50, 10);
+        }
+        else if (command == "m")
+        {
+            Console.SetWindowSize(100, 20);
+            if (hasWalls)
+            Console.SetBufferSize(100, 20);
+        }
+        else if (command == "l")
+        {
+            Console.SetWindowSize(150, 30);
+            if (hasWalls)
+            Console.SetBufferSize(150, 30);
+        }
         var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
                                                       //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
 
-        using (var cts = new CancellationTokenSource()) //metod för keypress.
+        using (var cts = new CancellationTokenSource())
         {
             async Task MonitorKeyPresses()
             {
@@ -16,17 +50,18 @@
                     if (Console.KeyAvailable)
                     {
                         var key = Console.ReadKey(intercept: true).Key;
-                        snakeGame.OnKeyPress(key); //läser av vilken knapp som tryckts
+                        snakeGame.OnKeyPress(key);
                     }
-                    await Task.Delay(1); //Gör tasken efter X millisekunder
+                    await Task.Delay(1);//tick delay
                 }
             }
-            var monitorKeyPresses = MonitorKeyPresses(); //om en knapp trycks
+            var monitorKeyPresses = MonitorKeyPresses();
             do
             {
-                snakeGame.OnGameTick(); //anropar metod som körs varje gång spelet uppdateras (görs 
-                snakeGame.Render(); //skapar storleken på ormen ovh äpplet
-                await Task.Delay(tickRate); //denna do-loop körs efter 100ms
+                Console.CursorVisible = false;
+                snakeGame.OnGameTick(); //on tick 
+                snakeGame.Render();
+                await Task.Delay(snakeGame._tickrate);
             } while (!snakeGame.GameOver);
 
             // Allow time for user to weep before application exits.
@@ -89,7 +124,7 @@ interface IRenderable
 {
     void Render();
 }
-readonly struct Position //poistion
+readonly struct Position //POS
 {
     public Position(int top, int left)
     {
@@ -98,8 +133,8 @@ readonly struct Position //poistion
     }
     public int Top { get; }
     public int Left { get; }
-    public Position RightBy(int n) => new Position(Top, Left + n); //körs sidleds
-    public Position DownBy(int n) => new Position(Top + n, Left); //körs vertikalt
+    public Position RightBy(int n) => new Position(Top, Left + n); //X
+    public Position DownBy(int n) => new Position(Top + n, Left); //Y
 }
 class Apple : IRenderable
 {
@@ -110,42 +145,47 @@ class Apple : IRenderable
     public Position Position { get; }
     public void Render() //renderar äpplet
     {
+        Console.OutputEncoding = Encoding.ASCII;
         Console.SetCursorPosition(Position.Left, Position.Top);
-        Console.Write("A"); //äpplet ser ut som ett A
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.BackgroundColor= ConsoleColor.Green;
+        Console.Write("A");
+        Console.BackgroundColor= ConsoleColor.Black;
+        Console.ForegroundColor = ConsoleColor.White;
     }
 }
 class Snake : IRenderable
 {
-    private List<Position> _body; //
+    public static List<Position> _body; //
     private int _growthSpurtsRemaining;
-    public Snake(Position spawnLocation, int initialSize = 1) //spawnar ormen på plats spawnLocation med storlek 1
+    public Snake(Position spawnLocation, int initialSize = 1) //Spawn condition
     {
         _body = new List<Position> { spawnLocation };
-        _growthSpurtsRemaining = Math.Max(0, initialSize - 1); //hur stor ormen är
+        _growthSpurtsRemaining = Math.Max(0, initialSize - 1); //Snake size
         Dead = false; //ormen är inte död
     }
     public bool Dead { get; private set; }
-    public Position Head => _body.First(); //sätter huvudet först
+    public Position Head => _body.First();
     private IEnumerable<Position> Body => _body.Skip(1);
-    public void Move(Direction direction) //metod för att röra sig
+    public void Move(Direction direction) //Movement
     {
         if (Dead) throw new InvalidOperationException();
         Position newHead;
         switch (direction)
         {
             case Direction.Up:
-                newHead = Head.DownBy(-1); //om upp så rör sig den downby-1 dvs upp
+                newHead = Head.DownBy(-1);
                 break;
 
-            case Direction.Left://om left så rör den sig rightby -1 dvs left
+            case Direction.Left:
                 newHead = Head.RightBy(-1);
                 break;
 
-            case Direction.Down: //om down så rör den sig downby 1 dvs down
+            case Direction.Down:
                 newHead = Head.DownBy(1);
                 break;
 
-            case Direction.Right: //om right så rör den sig rightby1 dvs right
+            case Direction.Right:
                 newHead = Head.RightBy(1);
                 break;
 
@@ -154,10 +194,21 @@ class Snake : IRenderable
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        if (_body.Contains(newHead) || !PositionIsValid(newHead))
+        if (Program.hasWalls == true)
         {
-            Dead = true;
-            return;
+            if (_body.Contains(newHead) || !PositionIsValid(newHead))
+            {
+                Dead = true;
+                return;
+            }
+        }
+        else if (Program.hasWalls == false)
+        {
+            if (_body.Contains(newHead) || !PositionIsValid2(newHead))
+            {
+                Dead = true;
+                return;
+            }
         }
         _body.Insert(0, newHead);
         if (_growthSpurtsRemaining > 0)
@@ -169,43 +220,53 @@ class Snake : IRenderable
             _body.RemoveAt(_body.Count - 1);
         }
     }
-    public void Grow() //metod så ormen växer
+    public void Grow()
     {
         if (Dead) throw new InvalidOperationException();
 
         _growthSpurtsRemaining++;
     }
-    public void Render() //metod för att visa ormen
+    public void Render() //Method to render the snake
     {
         Console.SetCursorPosition(Head.Left, Head.Top);
-        Console.Write("@");//huvudet
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("@"); //Head
+        Console.ForegroundColor = ConsoleColor.White;
 
 
-        foreach (var position in Body) //kroppen
+        foreach (var position in Body) //Body
         {
             Console.SetCursorPosition(position.Left, position.Top);
-            Console.Write("#");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.BackgroundColor = ConsoleColor.DarkGreen;
+            Console.Write("#");//Body
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
-    private static bool PositionIsValid(Position position) =>
-        position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth;
+    private static bool PositionIsValid(Position position) => 
+        position.Top >= 1 && position.Top < Console.WindowHeight - 1 && position.Left >= 1 && position.Left < Console.WindowWidth - 1; //Ändrat så ormen dör när den åker in en vägg
+    private static bool PositionIsValid2(Position position) =>
+      position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth; //Ändrat så ormen dör när den åker in en vägg
 }
 class SnakeGame : IRenderable
 {
-    private static readonly Position Origin = new Position(0, 0); //plats där ormen startar
-    private Direction _currentDirection; //rör sig åt ett hål initiexlt
-    private Direction _nextDirection; //
-    private Snake _snake; //skapar ormen
-    private Apple _apple; //skapar ett äpple
+    private static readonly Position Origin = new Position(Console.WindowHeight/2, Console.WindowWidth/2); //Start POS
+    private Direction _currentDirection;
+    private Direction _nextDirection;
+    private Snake _snake;
+    private Apple _apple;
+    public TimeSpan _tickrate;
     public SnakeGame()
     {
-        _snake = new Snake(Origin, initialSize: 5); //startplats och storlek
-        _apple = CreateApple(); //skapar ett äpple
-        _currentDirection = Direction.Right; //fyller ingen funktion när spelet startar
-        _nextDirection = Direction.Right; //startriktning
+        _snake = new Snake(Origin, initialSize: 5); //Start conditions
+        _apple = CreateApple();
+        _currentDirection = Direction.Right;
+        _nextDirection = Direction.Right;
+        _tickrate = TimeSpan.FromMilliseconds(100);
     }
-    public bool GameOver => _snake.Dead; //om game over så snake död 
-    public void OnKeyPress(ConsoleKey key) //metod som registrerar och sätter direktions
+    public bool GameOver => _snake.Dead; //Murderes the snake IF gameover
+    public void OnKeyPress(ConsoleKey key) //Movement
     {
         Direction newDirection;
 
@@ -243,7 +304,7 @@ class SnakeGame : IRenderable
         }
         _nextDirection = newDirection;
     }
-    public void OnGameTick() //Detta händer varje tick
+    public void OnGameTick() //ticktacktoe
     {
         if (GameOver) throw new InvalidOperationException();
 
@@ -256,11 +317,30 @@ class SnakeGame : IRenderable
         {
             _snake.Grow();
             _apple = CreateApple();
+            if (_tickrate.TotalMilliseconds > 25) { _tickrate = TimeSpan.FromMilliseconds(_tickrate.TotalMilliseconds - 5); }
+            if (_tickrate.TotalMilliseconds > 50) { _tickrate = TimeSpan.FromMilliseconds(_tickrate.TotalMilliseconds - 2.5); }
         }
     }
-    public void Render() //detta renderas
+    public void Render()
     {
         Console.Clear();
+        // Lagt till väggar
+        if (Program.hasWalls == true)
+        {
+            string lines = "";
+            for (int i = 0; i < Console.WindowWidth; i++)
+            {
+                Console.Write("-");
+            }
+            for (int i = 2; i < Console.WindowHeight; i++)
+            {
+                Console.WriteLine($"|{lines.PadRight(Console.WindowWidth - 2, ' ')}|");
+            }
+            for (int i = Console.WindowHeight; i < Console.WindowWidth + Console.WindowHeight; i++)
+            {
+                Console.Write("-");
+            }
+        }
         _snake.Render();
         _apple.Render();
         Console.SetCursorPosition(0, 0);
@@ -276,19 +356,18 @@ class SnakeGame : IRenderable
             default: throw new ArgumentOutOfRangeException();
         }
     }
-    private static Apple CreateApple() //skapar ett äpple
+    private static Apple CreateApple() //Banana
     {
         // Can be factored elsewhere.
-        int nrRow = Console.WindowHeight;
         int numberOfRows = Console.WindowHeight;
         int numberOfColumns = Console.WindowWidth;
-
         var random = new Random();
-        var top = random.Next(0, numberOfRows + 1);
-        var left = random.Next(0, numberOfColumns + 1);
+        var top = random.Next(1, numberOfRows - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
+        var left = random.Next(1, numberOfColumns - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
         var position = new Position(top, left);
         var apple = new Apple(position);
-
         return apple;
+
+
     }
 }
