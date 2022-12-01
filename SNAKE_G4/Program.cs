@@ -88,12 +88,12 @@ public static class Program
         do
         {
             Console.Clear();
-            Console.WriteLine("-----------------------------------------------------");
-            Console.WriteLine("|  Menyn:                                           |");
-            Console.WriteLine("|  Välja siffra nedan för att komma vidare i spelet |");
-            Console.WriteLine("|  1. Starta spelet                                 |");
-            Console.WriteLine("|  2. Avsluta Snake                                 |");
-            Console.WriteLine("-----------------------------------------------------");
+            Console.WriteLine("╔═══════════════════════════════════════════════════╗");
+            Console.WriteLine("║  Menyn:                                           ║");
+            Console.WriteLine("║  Välja siffra nedan för att komma vidare i spelet ║");
+            Console.WriteLine("║  1. Starta spelet                                 ║");
+            Console.WriteLine("║  2. Avsluta Snake                                 ║");
+            Console.WriteLine("╚═══════════════════════════════════════════════════╝");
             Console.Write("> "); 
             number = Console.ReadLine();
             if (number == "1")
@@ -109,7 +109,7 @@ public static class Program
                 Environment.Exit(0);
             }
         }
-        while (number != "3");
+        while (number != "2");
     }
 }
 enum Direction //enum directions
@@ -236,9 +236,9 @@ class Snake : IRenderable
         foreach (var position in Body) //Body
         {
             Console.SetCursorPosition(position.Left, position.Top);
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Black;
             Console.BackgroundColor = ConsoleColor.DarkGreen;
-            Console.Write("#");//Body
+            Console.Write("W");//Body
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
         }
