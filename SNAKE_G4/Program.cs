@@ -12,31 +12,7 @@ public static class Program
     public static bool hasWalls = false;
     public static async Task Main(string[] args)
     {
-        Console.WriteLine("Vill du köra med eller utan väggar? y/n");
-        string walls = Console.ReadLine();
-        if (walls == "y")
-            hasWalls = true;
-        Console.WriteLine("Vilken storlek vill du ha på spelet?\n(s)mall\n(m)edium\n(l)arge");
-        Console.Write(">");
-        string command = Console.ReadLine().ToLower();
-        if (command == "s")
-        {
-            Console.SetWindowSize(50, 10);
-            if (hasWalls)
-            Console.SetBufferSize(50, 10);
-        }
-        else if (command == "m")
-        {
-            Console.SetWindowSize(100, 20);
-            if (hasWalls)
-            Console.SetBufferSize(100, 20);
-        }
-        else if (command == "l")
-        {
-            Console.SetWindowSize(150, 30);
-            if (hasWalls)
-            Console.SetBufferSize(150, 30);
-        }
+        Runmenu();
         var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
                                                       //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
@@ -76,7 +52,36 @@ public static class Program
             await monitorKeyPresses;
         }
     }
-    
+
+    private static void RunWalls()
+    {
+        Console.WriteLine("Vill du köra med eller utan väggar? y/n");
+        string walls = Console.ReadLine();
+        if (walls == "y")
+            hasWalls = true;
+        Console.WriteLine("Vilken storlek vill du ha på spelet?\n(s)mall\n(m)edium\n(l)arge");
+        Console.Write(">");
+        string command = Console.ReadLine().ToLower();
+        if (command == "s")
+        {
+            Console.SetWindowSize(50, 10);
+            if (hasWalls)
+                Console.SetBufferSize(50, 10);
+        }
+        else if (command == "m")
+        {
+            Console.SetWindowSize(100, 20);
+            if (hasWalls)
+                Console.SetBufferSize(100, 20);
+        }
+        else if (command == "l")
+        {
+            Console.SetWindowSize(150, 30);
+            if (hasWalls)
+                Console.SetBufferSize(150, 30);
+        }
+    }
+
     public static void Runmenu()
     {
         string number;
@@ -87,8 +92,7 @@ public static class Program
             Console.WriteLine("|  Menyn:                                           |");
             Console.WriteLine("|  Välja siffra nedan för att komma vidare i spelet |");
             Console.WriteLine("|  1. Starta spelet                                 |");
-            Console.WriteLine("|  2. Välj storlek på förstret                      |");
-            Console.WriteLine("|  3. Avsluta Snake                                 |");
+            Console.WriteLine("|  2. Avsluta Snake                                 |");
             Console.WriteLine("-----------------------------------------------------");
             Console.Write("> "); 
             number = Console.ReadLine();
@@ -96,15 +100,10 @@ public static class Program
             {
                 Console.Clear();
                 Console.WriteLine("För att avsluta pågående spel, tryck Escape");
-                Console.ReadKey();
+                RunWalls();
                 return;
             }
             else if (number == "2")
-            {
-                Console.WriteLine("S,M,L");
-                Console.ReadKey();
-            }
-            else if (number == "3")
             {
                 Console.WriteLine("Välkommen åter");
                 Environment.Exit(0);
