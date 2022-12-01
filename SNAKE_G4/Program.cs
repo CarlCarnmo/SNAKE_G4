@@ -12,9 +12,9 @@ public static class Program
     public static bool hasWalls = false;
     public static async Task Main(string[] args)
     {
+        // Calls the Menu Method.
+        // L.84.
         Runmenu();
-        var tickRate = TimeSpan.FromMilliseconds(75); //Hur ofta programmet uppdateras. Denna kan ändras så det ser ut som att ormen
-                                                      //rör sig snabbare/långsammare
         var snakeGame = new SnakeGame();
 
         using (var cts = new CancellationTokenSource())
@@ -28,14 +28,19 @@ public static class Program
                         var key = Console.ReadKey(intercept: true).Key;
                         snakeGame.OnKeyPress(key);
                     }
-                    await Task.Delay(1);//tick delay
+                    await Task.Delay(1);
                 }
             }
             var monitorKeyPresses = MonitorKeyPresses();
             do
             {
+                // Hide cursor.
                 Console.CursorVisible = false;
-                snakeGame.OnGameTick(); //on tick 
+                // Calls this Methos each 'tick'.
+                // L.308.
+                snakeGame.OnGameTick();
+                // Method to Render the Snake and playingfield.
+                // L.327.
                 snakeGame.Render();
                 await Task.Delay(snakeGame._tickrate);
             } while (!snakeGame.GameOver);
@@ -52,7 +57,7 @@ public static class Program
             await monitorKeyPresses;
         }
     }
-
+    // Set playingfield size.
     private static void RunWalls()
     {
         Console.WriteLine("Vill du köra med eller utan väggar? y/n");
@@ -112,7 +117,7 @@ public static class Program
         while (number != "2");
     }
 }
-enum Direction //enum directions
+enum Direction
 {
     Up,
     Down,
@@ -123,7 +128,7 @@ interface IRenderable
 {
     void Render();
 }
-readonly struct Position //POS
+readonly struct Position
 {
     public Position(int top, int left)
     {
@@ -142,9 +147,8 @@ class Apple : IRenderable
         Position = position;
     }
     public Position Position { get; }
-    public void Render() //renderar äpplet
+    public void Render()
     {
-        Console.OutputEncoding = Encoding.ASCII;
         Console.SetCursorPosition(Position.Left, Position.Top);
         Console.ForegroundColor = ConsoleColor.Red;
         Console.BackgroundColor= ConsoleColor.Green;
@@ -155,18 +159,22 @@ class Apple : IRenderable
 }
 class Snake : IRenderable
 {
-    public static List<Position> _body; //
+    public static List<Position> _body;
     private int _growthSpurtsRemaining;
-    public Snake(Position spawnLocation, int initialSize = 1) //Spawn condition
+
+    //Spawn condition for _Snake.
+    public Snake(Position spawnLocation, int initialSize = 1)
     {
         _body = new List<Position> { spawnLocation };
-        _growthSpurtsRemaining = Math.Max(0, initialSize - 1); //Snake size
+        _growthSpurtsRemaining = Math.Max(0, initialSize - 1);
         Dead = false;
     }
     public bool Dead { get; private set; }
     public Position Head => _body.First();
     private IEnumerable<Position> Body => _body.Skip(1);
-    public void Move(Direction direction) //Movement
+
+    // Movement Method for _Snake.
+    public void Move(Direction direction)
     {
         if (Dead) throw new InvalidOperationException();
         Position newHead;
@@ -175,21 +183,15 @@ class Snake : IRenderable
             case Direction.Up:
                 newHead = Head.DownBy(-1);
                 break;
-
             case Direction.Left:
                 newHead = Head.RightBy(-1);
                 break;
-
             case Direction.Down:
                 newHead = Head.DownBy(1);
                 break;
-
             case Direction.Right:
                 newHead = Head.RightBy(1);
                 break;
-
-
-
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -225,7 +227,8 @@ class Snake : IRenderable
 
         _growthSpurtsRemaining++;
     }
-    public void Render() //Method to render the snake
+    // Method to render the snake.
+    public void Render() 
     {
         Console.SetCursorPosition(Head.Left, Head.Top);
         Console.ForegroundColor = ConsoleColor.Green;
@@ -233,7 +236,7 @@ class Snake : IRenderable
         Console.ForegroundColor = ConsoleColor.White;
 
 
-        foreach (var position in Body) //Body
+        foreach (var position in Body)
         {
             Console.SetCursorPosition(position.Left, position.Top);
             Console.ForegroundColor = ConsoleColor.Black;
@@ -244,13 +247,14 @@ class Snake : IRenderable
         }
     }
     private static bool PositionIsValid(Position position) => 
-        position.Top >= 1 && position.Top < Console.WindowHeight - 1 && position.Left >= 1 && position.Left < Console.WindowWidth - 1; //Ändrat så ormen dör när den åker in en vägg
+        position.Top >= 1 && position.Top < Console.WindowHeight - 1 && position.Left >= 1 && position.Left < Console.WindowWidth - 1;
     private static bool PositionIsValid2(Position position) =>
-      position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth; //Ändrat så ormen dör när den åker in en vägg
+      position.Top >= 0 && position.Top < Console.WindowHeight && position.Left >= 0 && position.Left < Console.WindowWidth;
 }
 class SnakeGame : IRenderable
 {
-    private static readonly Position Origin = new Position(Console.WindowHeight/2, Console.WindowWidth/2); //Start POS
+    // Start POS.
+    private static readonly Position Origin = new Position(Console.WindowHeight/2, Console.WindowWidth/2);
     private Direction _currentDirection;
     private Direction _nextDirection;
     private Snake _snake;
@@ -258,14 +262,16 @@ class SnakeGame : IRenderable
     public TimeSpan _tickrate;
     public SnakeGame()
     {
-        _snake = new Snake(Origin, initialSize: 5); //Start conditions
+        // Start conditions.
+        _snake = new Snake(Origin, initialSize: 5);
         _apple = CreateApple();
         _currentDirection = Direction.Right;
         _nextDirection = Direction.Right;
-        _tickrate = TimeSpan.FromMilliseconds(100);
+        _tickrate = TimeSpan.FromMilliseconds(150);
     }
-    public bool GameOver => _snake.Dead; //Murderes the snake IF gameover
-    public void OnKeyPress(ConsoleKey key) //Movement
+    // Murderes the snake IF gameover.
+    public bool GameOver => _snake.Dead;
+    public void OnKeyPress(ConsoleKey key)
     {
         Direction newDirection;
 
@@ -288,7 +294,7 @@ class SnakeGame : IRenderable
                 break;
 
             case ConsoleKey.Escape:
-                newDirection = Direction.Right;    //Denna rad behövdes för kompileringen. Ormen ska inte svänga höger vid Escape
+                newDirection = Direction.Right;
                 Console.Clear();
                 Environment.Exit(0);
                 break;
@@ -303,7 +309,8 @@ class SnakeGame : IRenderable
         }
         _nextDirection = newDirection;
     }
-    public void OnGameTick() //ticktacktoe
+    // TickTackToe.
+    public void OnGameTick()
     {
         if (GameOver) throw new InvalidOperationException();
 
@@ -317,27 +324,27 @@ class SnakeGame : IRenderable
             _snake.Grow();
             _apple = CreateApple();
             if (_tickrate.TotalMilliseconds > 25) { _tickrate = TimeSpan.FromMilliseconds(_tickrate.TotalMilliseconds - 5); }
-            if (_tickrate.TotalMilliseconds > 50) { _tickrate = TimeSpan.FromMilliseconds(_tickrate.TotalMilliseconds - 2.5); }
+            if (_tickrate.TotalMilliseconds < 100) { _tickrate = TimeSpan.FromMilliseconds(_tickrate.TotalMilliseconds - 2.5); }
         }
     }
     public void Render()
     {
         Console.Clear();
-        // Lagt till väggar
+        // Walls for playingfield.
         if (Program.hasWalls == true)
         {
             string lines = "";
             for (int i = 0; i < Console.WindowWidth; i++)
             {
-                Console.Write("-");
+                Console.Write("═");
             }
             for (int i = 2; i < Console.WindowHeight; i++)
             {
-                Console.WriteLine($"|{lines.PadRight(Console.WindowWidth - 2, ' ')}|");
+                Console.WriteLine($"║{lines.PadRight(Console.WindowWidth - 2, ' ')}║");
             }
             for (int i = Console.WindowHeight; i < Console.WindowWidth + Console.WindowHeight; i++)
             {
-                Console.Write("-");
+                Console.Write("═");
             }
         }
         _snake.Render();
@@ -355,18 +362,17 @@ class SnakeGame : IRenderable
             default: throw new ArgumentOutOfRangeException();
         }
     }
-    private static Apple CreateApple() //Banana
+    // Method to spawn the apple on playingfield.
+    private static Apple CreateApple()
     {
         // Can be factored elsewhere.
         int numberOfRows = Console.WindowHeight;
         int numberOfColumns = Console.WindowWidth;
         var random = new Random();
-        var top = random.Next(1, numberOfRows - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
-        var left = random.Next(1, numberOfColumns - 1); //Tagit bort +1 då äpplet kunde spawna ett steg utanför spelfältet
+        var top = random.Next(1, numberOfRows - 1);
+        var left = random.Next(1, numberOfColumns - 1);
         var position = new Position(top, left);
         var apple = new Apple(position);
         return apple;
-
-
     }
 }
